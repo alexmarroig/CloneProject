@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RVC Voice Conversion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #999;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-wrapper:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .file-input-wrapper.dragover {
+            border-color: #764ba2;
+            background: #e8ecff;
+        }
+
+        input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: block;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .file-input-hint {
+            display: block;
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .file-name {
+            display: none;
+            color: #28a745;
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #333;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-convert {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-convert:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-convert:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-clear {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-clear:hover {
+            background: #e0e0e0;
+        }
+
+        .progress-section {
+            display: none;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            animation: progress 2s infinite;
+            border-radius: 10px;
+        }
+
+        @keyframes progress {
+            0% { width: 0%; }
+            50% { width: 80%; }
+            100% { width: 100%; }
+        }
+
+        .status-message {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 14px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .download-btn {
+            display: none;
+            background: #28a745;
+            color: white;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .info-box {
+            background: #f8f9ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .info-box strong {
+            color: #333;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Voice Conversion</h1>
+        <p class="subtitle">Convert your audio with RVC</p>
+
+        <div class="info-box">
+            <strong>How it works:</strong> Upload an audio file, select a voice model, and we'll convert it in seconds!
+        </div>
+
+        <form id="conversionForm">
+            <!-- Audio File Upload -->
+            <div class="form-group">
+                <label>Audio File</label>
+                <div class="file-input-wrapper" id="fileInputWrapper">
+                    <span class="file-input-label">Click or drag to upload</span>
+                    <span class="file-input-hint">Supported: MP3, WAV (max 50MB)</span>
+                    <input type="file" id="audioFile" accept=".mp3,.wav,.m4a" required>
+                    <span class="file-name" id="fileName"></span>
+                </div>
+            </div>
+
+            <!-- Model Selection -->
+            <div class="form-group">
+                <label for="model">Voice Model</label>
+                <select id="model" name="model" required>
+                    <option value="">-- Select a model --</option>
+                    <option value="esposa_voice">Esposa Voice (Wife's Voice)</option>
+                </select>
+            </div>
+
+            <!-- F0 Parameters -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="f0_up_key">Pitch Shift</label>
+                    <select id="f0_up_key" name="f0_up_key">
+                        <option value="-12">-12 (Lower)</option>
+                        <option value="-6">-6</option>
+                        <option value="0" selected>0 (Normal)</option>
+                        <option value="6">+6</option>
+                        <option value="12">+12 (Higher)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="f0_method">F0 Method</label>
+                    <select id="f0_method" name="f0_method">
+                        <option value="crepe" selected>CREPE</option>
+                        <option value="pm">PM</option>
+                        <option value="harvest">Harvest</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div id="infoMessage" class="message info"></div>
+            <div id="successMessage" class="message success"></div>
+            <div id="errorMessage" class="message error"></div>
+
+            <!-- Buttons -->
+            <div class="button-group">
+                <button type="submit" class="btn-convert" id="convertBtn">Convert Audio</button>
+                <button type="reset" class="btn-clear">Clear</button>
+            </div>
+
+            <!-- Progress Section -->
+            <div class="progress-section" id="progressSection">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="status-message" id="statusMessage">Processing your audio...</div>
+            </div>
+
+            <!-- Download Button -->
+            <button type="button" class="download-btn" id="downloadBtn">Download Result</button>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('conversionForm');
+        const audioFile = document.getElementById('audioFile');
+        const fileInputWrapper = document.getElementById('fileInputWrapper');
+        const fileName = document.getElementById('fileName');
+        const convertBtn = document.getElementById('convertBtn');
+        const progressSection = document.getElementById('progressSection');
+        const statusMessage = document.getElementById('statusMessage');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const infoMsg = document.getElementById('infoMessage');
+        const successMsg = document.getElementById('successMessage');
+        const errorMsg = document.getElementById('errorMessage');
+
+        let lastOutputFile = null;
+
+        // File input handling
+        audioFile.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                const name = this.files[0].name;
+                const size = (this.files[0].size / (1024 * 1024)).toFixed(2);
+                fileName.textContent = `${name} (${size} MB)`;
+                fileName.style.display = 'block';
+                hideMessages();
+            }
+        });
+
+        // Drag and drop
+        fileInputWrapper.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileInputWrapper.classList.add('dragover');
+        });
+
+        fileInputWrapper.addEventListener('dragleave', () => {
+            fileInputWrapper.classList.remove('dragover');
+        });
+
+        fileInputWrapper.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileInputWrapper.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                audioFile.files = e.dataTransfer.files;
+                const event = new Event('change', { bubbles: true });
+                audioFile.dispatchEvent(event);
+            }
+        });
+
+        // Click to upload
+        fileInputWrapper.addEventListener('click', () => {
+            audioFile.click();
+        });
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!audioFile.files.length) {
+                showError('Please select an audio file');
+                return;
+            }
+
+            const file = audioFile.files[0];
+            const formData = new FormData();
+            formData.append('audio', file);
+            formData.append('model', document.getElementById('model').value);
+            formData.append('f0_up_key', document.getElementById('f0_up_key').value);
+            formData.append('f0_method', document.getElementById('f0_method').value);
+
+            convertBtn.disabled = true;
+            progressSection.style.display = 'block';
+            hideMessages();
+            downloadBtn.style.display = 'none';
+            lastOutputFile = null;
+
+            try {
+                showInfo('Uploading and processing your audio...');
+
+                const response = await fetch('/api/voice/convert', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const error = await response.text();
+                    throw new Error(error || `Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.status === 'success' && data.output_file) {
+                    lastOutputFile = data.output_file;
+                    showSuccess(`Conversion complete! File: ${data.output_file}`);
+                    downloadBtn.style.display = 'block';
+                    progressSection.style.display = 'none';
+                } else {
+                    throw new Error(data.message || 'Conversion failed');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError(`Error: ${error.message}`);
+                progressSection.style.display = 'none';
+            } finally {
+                convertBtn.disabled = false;
+            }
+        });
+
+        // Download handler
+        downloadBtn.addEventListener('click', async () => {
+            if (!lastOutputFile) return;
+
+            try {
+                const response = await fetch(`/api/download/${lastOutputFile}`);
+                if (!response.ok) throw new Error('Download failed');
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = lastOutputFile;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (error) {
+                showError(`Download error: ${error.message}`);
+            }
+        });
+
+        function showInfo(msg) {
+            hideMessages();
+            infoMsg.textContent = msg;
+            infoMsg.style.display = 'block';
+        }
+
+        function showSuccess(msg) {
+            hideMessages();
+            successMsg.textContent = msg;
+            successMsg.style.display = 'block';
+        }
+
+        function showError(msg) {
+            hideMessages();
+            errorMsg.textContent = msg;
+            errorMsg.style.display = 'block';
+        }
+
+        function hideMessages() {
+            infoMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+            errorMsg.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

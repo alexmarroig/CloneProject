@@ -1,0 +1,23 @@
+======================================================================
+RVC Training Pipeline - Wife's Voice (esposa_voice)
+======================================================================
+
+Configuration:
+  Voice Name: esposa_voice
+  Dataset: C:\Users\gaming\Desktop\Projetos\AI\Retrieval-based-Voice-Conversion-WebUI\app\runtime\datasets
+  Sample Rate: 40000
+  Epochs: 300
+  Batch Size: 1
+  Learning Rate: 0.0001
+  Device: cpu
+  Project Root: C:\Users\gaming\Desktop\Projetos\AI\Retrieval-based-Voice-Conversion-WebUI
+Traceback (most recent call last):
+  File "C:\Users\gaming\Desktop\Projetos\AI\Retrieval-based-Voice-Conversion-WebUI\train_wife_voice.py", line 185, in <module>
+    success = main()
+              ^^^^^^
+  File "C:\Users\gaming\Desktop\Projetos\AI\Retrieval-based-Voice-Conversion-WebUI\train_wife_voice.py", line 83, in main
+    print(f"\n\u2713 Found {len(audio_files)} audio files for training:")
+  File "C:\Users\gaming\AppData\Local\Programs\Python\Python311\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2713' in position 2: character maps to <undefined>

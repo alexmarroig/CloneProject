@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  xtts:
+    build: .
+    container_name: xtts-server
+    ports:
+      - "8001:8001"
+    volumes:
+      - ../app/runtime/datasets:/app/data
+    environment:
+      - TORCH_HOME=/app/data/.torch_cache
+      - HF_HOME=/app/data/.huggingface
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
